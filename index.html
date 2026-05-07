@@ -2,14 +2,14 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Sakura Clothing — The New Era of Essentialism</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,200;0,300;0,400;1,200&family=Playfair+Display:ital@1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,200;0,300;0,400;1,200&display=swap" rel="stylesheet" />
 
   <style>
-    /* ─── RESET & BASE ─────────────────────────────────────────── */
+    /* ─── RESET & BASE ─────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -19,12 +19,13 @@
       --blush-deep: #c47c84;
       --gold:       #b89a6e;
       --gold-lt:    #d4b896;
-      --mist:       rgba(244,237,230,0.08);
       --glass-bg:   rgba(255,250,246,0.12);
       --glass-bd:   rgba(255,250,246,0.28);
-      --radius-lg:  2rem;
-      --radius-xl:  3rem;
+      --radius-lg:  1.5rem;
+      --radius-xl:  2rem;
       --ease-expo:  cubic-bezier(0.16,1,0.3,1);
+      /* Touch target minimum */
+      --touch-min:  48px;
     }
 
     html { scroll-behavior: smooth; }
@@ -34,53 +35,88 @@
       background: var(--ink);
       color: var(--paper);
       overflow-x: hidden;
-      cursor: none;
+      /* Hide custom cursor on touch devices */
+      cursor: auto;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* ─── CUSTOM CURSOR ─────────────────────────────────────────── */
-    #cursor {
+    /* ─── CUSTOM CURSOR (desktop only) ─────────────── */
+    #cursor, #cursor-ring {
       position: fixed; z-index: 9999; pointer-events: none;
-      width: 10px; height: 10px;
-      background: var(--blush);
       border-radius: 50%;
       transform: translate(-50%, -50%);
-      transition: transform 0.08s ease, width 0.3s var(--ease-expo), height 0.3s var(--ease-expo), opacity 0.3s;
+      display: none; /* hidden by default, shown via JS on non-touch */
+    }
+    #cursor {
+      width: 10px; height: 10px;
+      background: var(--blush);
+      transition: transform 0.08s ease, width 0.3s var(--ease-expo), height 0.3s var(--ease-expo);
       mix-blend-mode: screen;
     }
     #cursor-ring {
-      position: fixed; z-index: 9998; pointer-events: none;
       width: 38px; height: 38px;
       border: 1px solid rgba(232,180,184,0.5);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
       transition: transform 0.18s var(--ease-expo), width 0.4s var(--ease-expo), height 0.4s var(--ease-expo);
     }
+    @media (pointer: fine) {
+      body { cursor: none; }
+      #cursor, #cursor-ring { display: block; }
+    }
 
-    /* ─── NAV ───────────────────────────────────────────────────── */
+    /* ─── NAV ──────────────────────────────────────── */
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 1.5rem 3rem;
-      mix-blend-mode: normal;
+      padding: 1.2rem 1.5rem;
+      gap: 1rem;
     }
     nav::before {
       content: '';
       position: absolute; inset: 0;
-      background: linear-gradient(to bottom, rgba(13,11,10,0.6) 0%, transparent 100%);
+      background: linear-gradient(to bottom, rgba(13,11,10,0.75) 0%, transparent 100%);
       pointer-events: none;
     }
     .nav-logo {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 1.45rem;
+      font-size: 1.3rem;
       font-weight: 300;
       letter-spacing: 0.22em;
       text-transform: uppercase;
       color: var(--paper);
       position: relative;
+      white-space: nowrap;
     }
     .nav-logo span { color: var(--blush); }
+
+    /* Hamburger toggle */
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      position: relative;
+      z-index: 10;
+      min-width: var(--touch-min);
+      min-height: var(--touch-min);
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-toggle span {
+      display: block;
+      width: 22px; height: 1.5px;
+      background: var(--paper);
+      transition: all 0.3s var(--ease-expo);
+      transform-origin: center;
+    }
+    .nav-toggle.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
     .nav-links {
-      display: flex; gap: 2.5rem; list-style: none; position: relative;
+      display: flex; gap: 2rem; list-style: none; position: relative;
     }
     .nav-links a {
       color: rgba(244,237,230,0.7);
@@ -90,67 +126,82 @@
       letter-spacing: 0.2em;
       text-transform: uppercase;
       transition: color 0.3s;
+      padding: 0.5rem 0;
+      min-height: var(--touch-min);
+      display: flex; align-items: center;
     }
-    .nav-links a:hover { color: var(--blush); }
+    .nav-links a:hover, .nav-links a:active { color: var(--blush); }
 
-    /* ─── HERO ──────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .nav-toggle { display: flex; }
+      .nav-links {
+        position: fixed;
+        inset: 0;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        background: rgba(13,11,10,0.97);
+        backdrop-filter: blur(20px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.35s var(--ease-expo);
+        z-index: 9;
+      }
+      .nav-links.open {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .nav-links a {
+        font-size: 1.1rem;
+        letter-spacing: 0.25em;
+        min-height: 56px;
+      }
+    }
+
+    /* ─── HERO ─────────────────────────────────────── */
     #hero {
       position: relative;
-      width: 100vw;
-      height: 100vh;
-      min-height: 600px;
+      width: 100%;
+      height: 100svh;
+      min-height: 500px;
       overflow: hidden;
       display: flex; align-items: center; justify-content: center;
     }
-
     .hero-img {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
       object-fit: cover;
-      object-position: center;
+      object-position: center 30%;
       transform: scale(1.06);
-      transition: transform 12s ease;
     }
-    #hero:hover .hero-img { transform: scale(1.12); }
-
     .hero-overlay {
       position: absolute; inset: 0;
       background: linear-gradient(
         160deg,
-        rgba(13,11,10,0.55) 0%,
-        rgba(13,11,10,0.2) 45%,
-        rgba(13,11,10,0.6) 100%
+        rgba(13,11,10,0.65) 0%,
+        rgba(13,11,10,0.3) 45%,
+        rgba(13,11,10,0.7) 100%
       );
     }
 
-    /* ─── LIQUID GLASS CARD ─────────────────────────────────────── */
+    /* ─── GLASS CARD ───────────────────────────────── */
     .glass-card {
       position: relative; z-index: 10;
-      padding: 3rem 3.5rem;
-      max-width: 640px;
+      padding: 2rem 1.75rem;
+      width: min(560px, calc(100% - 3rem));
       text-align: center;
-
       background: var(--glass-bg);
       border: 1px solid var(--glass-bd);
-      border-radius: var(--radius-xl);
+      border-radius: 2.5rem;
       backdrop-filter: blur(28px) saturate(180%);
       -webkit-backdrop-filter: blur(28px) saturate(180%);
-
       box-shadow:
         0 0 0 0.5px rgba(255,250,246,0.1) inset,
         0 8px 60px rgba(13,11,10,0.4),
         0 2px 12px rgba(232,180,184,0.08);
-
-      /* organic morph animation */
-      border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
       animation: morph-idle 7s ease-in-out infinite;
-      transition:
-        border-radius 0.6s var(--ease-expo),
-        transform 0.5s var(--ease-expo),
-        box-shadow 0.5s var(--ease-expo),
-        background 0.5s;
     }
-
     @keyframes morph-idle {
       0%   { border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%; }
       25%  { border-radius: 45% 55% 40% 60% / 60% 40% 55% 45%; }
@@ -158,109 +209,103 @@
       75%  { border-radius: 40% 60% 45% 55% / 55% 45% 60% 40%; }
       100% { border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%; }
     }
-
-    .glass-card:hover {
-      animation-play-state: paused;
-      border-radius: 50% 42% 58% 38% / 42% 58% 38% 56%;
-      transform: scale(1.04) translateY(-6px);
-      background: rgba(255,250,246,0.18);
-      box-shadow:
-        0 0 0 0.5px rgba(255,250,246,0.18) inset,
-        0 20px 80px rgba(13,11,10,0.5),
-        0 4px 24px rgba(232,180,184,0.18);
+    /* Pause morph on touch devices to save battery */
+    @media (pointer: coarse) {
+      .glass-card { animation-play-state: paused; border-radius: 2.5rem; }
     }
 
     .glass-eyebrow {
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       font-weight: 300;
-      letter-spacing: 0.35em;
+      letter-spacing: 0.3em;
       text-transform: uppercase;
       color: var(--blush);
-      margin-bottom: 1.2rem;
+      margin-bottom: 1rem;
     }
     .glass-title {
       font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      font-size: clamp(1.5rem, 5vw, 2.6rem);
       font-weight: 300;
       line-height: 1.25;
       color: var(--paper);
-      margin-bottom: 1.4rem;
+      margin-bottom: 1.2rem;
     }
-    .glass-title em {
-      font-style: italic;
-      color: var(--blush);
-    }
+    .glass-title em { font-style: italic; color: var(--blush); }
     .glass-sub {
       font-size: 0.8rem;
       font-weight: 200;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
       color: rgba(244,237,230,0.65);
       line-height: 1.7;
-      margin-bottom: 2rem;
+      margin-bottom: 1.8rem;
     }
+
+    /* ─── BUTTONS ──────────────────────────────────── */
     .btn-primary {
-      display: inline-block;
-      padding: 0.85rem 2.4rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.9rem 2.2rem;
+      min-height: var(--touch-min);
       background: var(--blush);
       color: var(--ink);
-      font-size: 0.7rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
       font-weight: 400;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
       border: none; cursor: pointer;
       border-radius: 100px;
       text-decoration: none;
       transition: background 0.3s, transform 0.3s var(--ease-expo), box-shadow 0.3s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .btn-primary:hover {
-      background: var(--paper);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(232,180,184,0.35);
-    }
+    .btn-primary:hover   { background: var(--paper); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(232,180,184,0.35); }
+    .btn-primary:active  { transform: scale(0.97); }
 
     .scroll-hint {
-      position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
       display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
       z-index: 10; opacity: 0.5;
       animation: bob 2s ease-in-out infinite;
     }
-    .scroll-hint span {
-      font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase;
-    }
-    .scroll-hint svg { width: 16px; }
+    .scroll-hint span { font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase; }
+    .scroll-hint svg  { width: 16px; }
     @keyframes bob {
       0%,100% { transform: translateX(-50%) translateY(0); }
       50%      { transform: translateX(-50%) translateY(8px); }
     }
 
-    /* ─── SECTION BASE ──────────────────────────────────────────── */
-    section { padding: 8rem 3rem; }
+    /* ─── SECTION BASE ─────────────────────────────── */
+    .section-wrap        { padding: clamp(4rem, 10vw, 8rem) clamp(1.25rem, 5vw, 3rem); }
+    .product-section-wrap { padding: clamp(4rem, 10vw, 8rem) clamp(1.25rem, 5vw, 3rem); background: #0f0d0c; }
+    .order-section-wrap  { padding: 2rem clamp(1.25rem, 5vw, 3rem) clamp(4rem, 10vw, 8rem); }
+
     .section-label {
       font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase;
       color: var(--blush); margin-bottom: 0.8rem;
     }
     .section-title {
       font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(2.2rem, 4vw, 3.5rem);
+      font-size: clamp(2rem, 6vw, 3.5rem);
       font-weight: 300; line-height: 1.15;
       color: var(--paper);
     }
     .section-title em { font-style: italic; color: var(--blush); }
 
-    /* ─── PRODUCT SECTION ───────────────────────────────────────── */
+    /* ─── PRODUCT ──────────────────────────────────── */
     #product {
       background: #0f0d0c;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6rem;
+      gap: 4rem;
       align-items: center;
       max-width: 1200px;
       margin: 0 auto;
       border-radius: var(--radius-lg);
     }
-
     @media (max-width: 860px) {
-      #product { grid-template-columns: 1fr; gap: 3rem; }
+      #product { grid-template-columns: 1fr; gap: 2.5rem; }
     }
 
     .product-img-wrap {
@@ -269,86 +314,91 @@
       overflow: hidden;
       aspect-ratio: 1/1;
       background: #1a1614;
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
     }
     .product-img-wrap img {
       width: 100%; height: 100%;
       object-fit: cover;
       transition: opacity 0.4s var(--ease-expo), transform 0.6s var(--ease-expo);
     }
-    .product-img-wrap:hover img { transform: scale(1.04); }
+    @media (hover: hover) {
+      .product-img-wrap:hover img { transform: scale(1.04); }
+    }
 
-    .product-info { padding-right: 1rem; }
+    .product-info { padding: 0; }
     .product-name {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 2.8rem; font-weight: 300;
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      font-weight: 300;
       line-height: 1.1; margin: 0.6rem 0 1rem;
     }
     .product-desc {
       font-size: 0.82rem; font-weight: 200;
       color: rgba(244,237,230,0.65);
-      line-height: 1.9; margin-bottom: 1.6rem;
+      line-height: 1.9; margin-bottom: 1.4rem;
     }
     .product-material {
       font-size: 0.72rem; letter-spacing: 0.08em;
-      color: var(--gold); margin-bottom: 2rem;
-      padding: 0.6rem 1rem;
+      color: var(--gold); margin-bottom: 1.8rem;
+      padding: 0.65rem 1.1rem;
       border: 1px solid rgba(184,154,110,0.25);
       border-radius: 100px;
       display: inline-block;
     }
 
-    /* Color selector */
+    /* Selectors */
     .selector-label {
       font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
       color: rgba(244,237,230,0.5); margin-bottom: 0.8rem;
     }
-    .color-options {
-      display: flex; gap: 0.75rem; margin-bottom: 2rem;
-    }
+    .color-options { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
     .color-btn {
-      width: 36px; height: 36px;
+      width: 44px; height: 44px; /* touch-friendly */
       border-radius: 50%; border: 2px solid transparent;
-      cursor: pointer; transition: transform 0.2s, border-color 0.2s;
-      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .color-btn:hover { transform: scale(1.15); }
+    @media (hover: hover) { .color-btn:hover { transform: scale(1.15); } }
+    .color-btn:active { transform: scale(0.92); }
     .color-btn.active {
       border-color: var(--paper);
       box-shadow: 0 0 0 3px rgba(244,237,230,0.15);
     }
-   /* Color-Buttons Farben */
-.color-btn[data-color="Schwarz"] { background: #000000; border: 1px solid rgba(255,255,255,0.2); }
-.color-btn[data-color="Pink"]    { background: #ff69b4; }
-.color-btn[data-color="Grau"]    { background: #808080; }
-.color-btn[data-color="Violett"] { background: #8a2be2; }
+    .color-btn[data-color="Schwarz"] { background: #000000; border: 2px solid rgba(255,255,255,0.2); }
+    .color-btn[data-color="Pink"]    { background: #ff69b4; }
+    .color-btn[data-color="Grau"]    { background: #808080; }
+    .color-btn[data-color="Violett"] { background: #8a2be2; }
+    .color-btn.active[data-color="Schwarz"] { border-color: var(--paper); }
 
     .color-name {
-      font-size: 0.75rem; color: rgba(244,237,230,0.55);
-      margin-bottom: 1.8rem; margin-top: -0.5rem;
+      font-size: 0.78rem; color: rgba(244,237,230,0.55);
+      margin-bottom: 1.5rem; margin-top: -0.5rem;
       min-height: 1.2em;
-      transition: color 0.3s;
     }
 
-    /* Size selector */
-    .size-options {
-      display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2.4rem;
-    }
+    .size-options { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
     .size-btn {
-      padding: 0.5rem 1rem;
+      padding: 0 1rem;
+      height: var(--touch-min); /* 48px touch target */
+      min-width: var(--touch-min);
       border: 1px solid rgba(244,237,230,0.2);
       background: transparent;
       color: rgba(244,237,230,0.65);
       font-family: 'DM Sans', sans-serif;
-      font-size: 0.72rem; letter-spacing: 0.08em;
-      border-radius: 6px; cursor: pointer;
+      font-size: 0.78rem; letter-spacing: 0.08em;
+      border-radius: 8px; cursor: pointer;
       transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; justify-content: center;
     }
-    .size-btn:hover { border-color: var(--blush); color: var(--blush); }
-    .size-btn.active {
-      background: var(--blush); border-color: var(--blush); color: var(--ink);
-    }
+    @media (hover: hover) { .size-btn:hover { border-color: var(--blush); color: var(--blush); } }
+    .size-btn:active { opacity: 0.7; }
+    .size-btn.active { background: var(--blush); border-color: var(--blush); color: var(--ink); }
 
-    /* ─── ORDER SUMMARY ─────────────────────────────────────────── */
+    /* ─── ORDER SUMMARY ────────────────────────────── */
     #order {
       max-width: 780px;
       margin: 0 auto;
@@ -359,18 +409,17 @@
       animation: fadeSlideUp 0.6s var(--ease-expo) both;
     }
     #order.visible { display: block; }
-
     @keyframes fadeSlideUp {
       from { opacity: 0; transform: translateY(40px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .order-inner { padding: 3.5rem; }
-
+    .order-inner { padding: clamp(1.75rem, 6vw, 3.5rem); }
     .summary-text {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 1.6rem; font-weight: 300;
-      line-height: 1.5; margin: 1rem 0 2rem;
+      font-size: clamp(1.2rem, 4vw, 1.6rem);
+      font-weight: 300;
+      line-height: 1.5; margin: 1rem 0 1.8rem;
       color: var(--paper);
     }
     .summary-text strong { color: var(--blush); font-weight: 400; }
@@ -383,10 +432,10 @@
       padding: 1rem 1.2rem;
       color: var(--paper);
       font-family: 'DM Sans', sans-serif;
-      font-size: 0.82rem;
+      font-size: 1rem; /* 16px prevents iOS zoom on focus */
       font-weight: 200;
       line-height: 1.7;
-      resize: none;
+      resize: vertical;
       outline: none;
       transition: border-color 0.3s;
       margin-bottom: 1.4rem;
@@ -399,73 +448,76 @@
       border: 1px solid rgba(232,180,184,0.2);
       border-radius: 12px;
       padding: 1.2rem 1.4rem;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       font-weight: 300;
       line-height: 1.8;
       color: rgba(244,237,230,0.85);
       margin-bottom: 1.8rem;
       white-space: pre-wrap;
+      word-break: break-word;
     }
 
     .action-btns {
-      display: flex; gap: 0.8rem; flex-wrap: wrap;
+      display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;
     }
-
     .btn-copy, .btn-wa, .btn-mail {
       display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.75rem 1.6rem;
-      font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 0 1.4rem;
+      height: var(--touch-min);
+      font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
       border-radius: 100px; cursor: pointer;
       text-decoration: none; border: none;
       transition: all 0.3s var(--ease-expo);
       font-family: 'DM Sans', sans-serif;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
     }
     .btn-copy {
       background: rgba(244,237,230,0.1);
       border: 1px solid rgba(244,237,230,0.2);
       color: var(--paper);
     }
-    .btn-copy:hover { background: rgba(244,237,230,0.18); transform: translateY(-2px); }
-    .btn-wa {
-      background: #1a8a3c; color: #fff;
-    }
-    .btn-wa:hover { background: #22a84a; transform: translateY(-2px); }
+    @media (hover: hover) { .btn-copy:hover { background: rgba(244,237,230,0.18); transform: translateY(-2px); } }
+    .btn-copy:active { opacity: 0.8; }
+    .btn-wa { background: #1a8a3c; color: #fff; }
+    @media (hover: hover) { .btn-wa:hover { background: #22a84a; transform: translateY(-2px); } }
     .btn-mail {
       background: rgba(184,154,110,0.15);
       border: 1px solid rgba(184,154,110,0.35);
       color: var(--gold-lt);
     }
-    .btn-mail:hover { background: rgba(184,154,110,0.25); transform: translateY(-2px); }
+    @media (hover: hover) { .btn-mail:hover { background: rgba(184,154,110,0.25); transform: translateY(-2px); } }
+
+    /* Stack buttons on very small screens */
+    @media (max-width: 400px) {
+      .action-btns { flex-direction: column; align-items: stretch; }
+      .btn-copy, .btn-wa, .btn-mail { justify-content: center; }
+    }
 
     .copy-feedback {
-      font-size: 0.68rem; color: var(--blush);
-      margin-left: 0.5rem; opacity: 0;
-      transition: opacity 0.3s;
+      font-size: 0.7rem; color: var(--blush);
+      opacity: 0; transition: opacity 0.3s;
     }
     .copy-feedback.show { opacity: 1; }
 
-    /* ─── STEPS ─────────────────────────────────────────────────── */
-    #steps {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
+    /* ─── STEPS ────────────────────────────────────── */
+    #steps { max-width: 1100px; margin: 0 auto; }
     .steps-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 2rem;
-      margin-top: 4rem;
+      gap: 1.5rem;
+      margin-top: 3.5rem;
     }
     @media (max-width: 720px) {
-      .steps-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; gap: 1.25rem; }
     }
     .step-card {
-      padding: 2.4rem 2rem;
+      padding: 2rem 1.75rem;
       border: 1px solid rgba(244,237,230,0.07);
-      border-radius: 1.4rem;
+      border-radius: 1.25rem;
       background: rgba(255,250,246,0.02);
       transition: border-color 0.3s, transform 0.3s var(--ease-expo);
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
     }
     .step-card::before {
       content: '';
@@ -474,55 +526,49 @@
       background: radial-gradient(circle, rgba(232,180,184,0.06) 0%, transparent 70%);
       border-radius: 50%;
     }
-    .step-card:hover {
-      border-color: rgba(232,180,184,0.25);
-      transform: translateY(-6px);
+    @media (hover: hover) {
+      .step-card:hover { border-color: rgba(232,180,184,0.25); transform: translateY(-6px); }
     }
     .step-num {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 4rem; font-weight: 300;
+      font-size: 3.5rem; font-weight: 300;
       color: rgba(232,180,184,0.15);
       line-height: 1; margin-bottom: 0.5rem;
     }
     .step-heading {
-      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--blush); margin-bottom: 0.8rem;
+      font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--blush); margin-bottom: 0.6rem;
     }
     .step-body {
       font-size: 0.82rem; font-weight: 200;
       color: rgba(244,237,230,0.55); line-height: 1.8;
     }
 
-    /* ─── VISION / BRAND ────────────────────────────────────────── */
-    #vision {
-      max-width: 880px;
-      margin: 0 auto;
-      text-align: center;
-    }
+    /* ─── VISION ───────────────────────────────────── */
+    #vision { max-width: 880px; margin: 0 auto; text-align: center; }
     .vision-quote {
       font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(1.5rem, 3.5vw, 2.8rem);
-      font-weight: 300;
-      font-style: italic;
+      font-size: clamp(1.3rem, 4.5vw, 2.8rem);
+      font-weight: 300; font-style: italic;
       line-height: 1.5;
       color: rgba(244,237,230,0.9);
-      margin: 2.5rem 0 3rem;
+      margin: 2rem 0 2.5rem;
     }
     .vision-body {
       font-size: 0.88rem; font-weight: 200;
       color: rgba(244,237,230,0.5);
       line-height: 2;
       max-width: 600px;
-      margin: 0 auto 3rem;
+      margin: 0 auto 2.5rem;
     }
     .divider {
       width: 48px; height: 1px;
       background: linear-gradient(to right, transparent, var(--blush), transparent);
-      margin: 0 auto 3rem;
+      margin: 0 auto 2.5rem;
     }
     .founder-tag {
       display: inline-flex; align-items: center; gap: 1rem;
-      padding: 0.8rem 1.5rem;
+      padding: 0.9rem 1.5rem;
       border: 1px solid rgba(244,237,230,0.08);
       border-radius: 100px;
     }
@@ -532,10 +578,12 @@
       display: flex; align-items: center; justify-content: center;
       font-family: 'Cormorant Garamond', serif;
       font-size: 1.1rem; color: var(--ink);
+      flex-shrink: 0;
     }
     .founder-name {
-      font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase;
+      font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase;
       color: rgba(244,237,230,0.6);
+      text-align: left;
     }
     .founder-name strong {
       display: block;
@@ -544,16 +592,17 @@
       text-transform: none;
     }
 
-    /* ─── FOOTER ────────────────────────────────────────────────── */
+    /* ─── FOOTER ───────────────────────────────────── */
     footer {
       text-align: center;
-      padding: 4rem 3rem;
+      padding: clamp(2.5rem, 8vw, 4rem) clamp(1.25rem, 5vw, 3rem);
       border-top: 1px solid rgba(244,237,230,0.05);
     }
     footer p {
-      font-size: 0.68rem; letter-spacing: 0.18em;
+      font-size: 0.68rem; letter-spacing: 0.15em;
       text-transform: uppercase;
       color: rgba(244,237,230,0.2);
+      word-break: break-word;
     }
     footer .footer-logo {
       font-family: 'Cormorant Garamond', serif;
@@ -561,67 +610,58 @@
       color: rgba(244,237,230,0.15); margin-bottom: 1rem;
     }
 
-    /* ─── SECTION WRAPPERS ──────────────────────────────────────── */
-    .section-wrap { padding: 8rem 3rem; }
-    .product-section-wrap {
-      padding: 8rem 3rem;
-      background: #0f0d0c;
-    }
-    .order-section-wrap { padding: 4rem 3rem 8rem; }
-
-    /* ─── SCROLL REVEAL ─────────────────────────────────────────── */
+    /* ─── SCROLL REVEAL ────────────────────────────── */
     .reveal {
       opacity: 0;
-      transform: translateY(32px);
+      transform: translateY(28px);
       transition: opacity 0.8s var(--ease-expo), transform 0.8s var(--ease-expo);
     }
     .reveal.in { opacity: 1; transform: none; }
-    .reveal-delay-1 { transition-delay: 0.12s; }
-    .reveal-delay-2 { transition-delay: 0.24s; }
-    .reveal-delay-3 { transition-delay: 0.36s; }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
   </style>
 </head>
 <body>
 
-<!-- ── CURSOR ──────────────────────────────────────────────────── -->
+<!-- ── CURSOR (desktop only) ──────────────────────── -->
 <div id="cursor"></div>
 <div id="cursor-ring"></div>
 
-<!-- ── NAV ────────────────────────────────────────────────────── -->
+<!-- ── NAV ────────────────────────────────────────── -->
 <nav>
   <div class="nav-logo">Sakura<span>.</span></div>
-  <ul class="nav-links">
-    <li><a href="#hero">Home</a></li>
-    <li><a href="#product-section">Kollektion</a></li>
-    <li><a href="#steps-section">Bestellen</a></li>
-    <li><a href="#vision-section">Vision</a></li>
+  <button class="nav-toggle" id="nav-toggle" aria-label="Menü öffnen">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#hero"            onclick="closeMenu()">Home</a></li>
+    <li><a href="#product-section" onclick="closeMenu()">Kollektion</a></li>
+    <li><a href="#steps-section"   onclick="closeMenu()">Bestellen</a></li>
+    <li><a href="#vision-section"  onclick="closeMenu()">Vision</a></li>
   </ul>
 </nav>
 
-<!-- ── HERO ───────────────────────────────────────────────────── -->
+<!-- ── HERO ───────────────────────────────────────── -->
 <section id="hero">
-  <img
-    src="Sakura.jpg"
-    alt="Sakura Clothing – Hero"
-    class="hero-img"
-    onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#1a1014 0%,#2a1a20 50%,#0d0b0a 100%)'"
-  />
+  <img src="Sakura.jpg" alt="Sakura Clothing – Hero" class="hero-img"
+       onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#1a1014 0%,#2a1a20 50%,#0d0b0a 100%)'" />
   <div class="hero-overlay"></div>
 
   <div class="glass-card">
     <p class="glass-eyebrow">Sakura Clothing — SS 2026</p>
     <h1 class="glass-title">
       The New Era of Essentialism —<br />
-      <em>Entdecke die Sakura<br />Signature Collection.</em>
+      <em>Entdecke die Sakura Signature Collection.</em>
     </h1>
     <p class="glass-sub">
-      Curated pieces. Conscious design. Elevated everyday wear<br />
+      Curated pieces. Conscious design. Elevated everyday wear
       für diejenigen, die Stille als Stärke verstehen.
     </p>
     <a href="#product-section" class="btn-primary">Kollektion entdecken</a>
   </div>
 
-  <div class="scroll-hint">
+  <div class="scroll-hint" aria-hidden="true">
     <span>Scroll</span>
     <svg viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M8 4v16M3 14l5 6 5-6"/>
@@ -629,45 +669,36 @@
   </div>
 </section>
 
-<!-- ── PRODUCT ─────────────────────────────────────────────────── -->
+<!-- ── PRODUCT ─────────────────────────────────────── -->
 <div class="product-section-wrap" id="product-section">
   <div id="product" class="reveal">
-
-    <!-- Image -->
     <div class="product-img-wrap">
-      <img
-        id="product-img"
-        src="Hosen.jpg"
-        alt="Sakura Pants"
-        onerror="this.parentElement.style.background='linear-gradient(135deg,#2a1a20,#1a1614)'"
-      />
+      <img id="product-img" src="Hosen.jpg" alt="Sakura Pants"
+           onerror="this.parentElement.style.background='linear-gradient(135deg,#2a1a20,#1a1614)'" />
     </div>
 
-    <!-- Info -->
     <div class="product-info">
       <p class="section-label">Sakura Signature</p>
-      <h2 class="product-name">The Signature<br /><em style="font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--blush);">Sakura Pants</em></h2>
-
+      <h2 class="product-name">The Signature<br />
+        <em style="font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--blush);">Sakura Pants</em>
+      </h2>
       <p class="product-desc">
         Entwickelt für die Generation, die Qualität über Quantität stellt.
         Ein puristischer Schnitt, der zwischen Urban-Minimalism und
         zeitlosem Tailoring pendelt — getragen für die ruhigen Momente,
         die alles definieren.
       </p>
-
       <span class="product-material">Premium Baumwoll-Mix · 420 GSM · Made with Care</span>
 
-      <!-- Color Picker -->
       <p class="selector-label">Farbe wählen</p>
-     <div class="color-options">
-  <button class="color-btn active" data-color="Schwarz" title="Onyx Black" onclick="selectColor(this)"></button>
-  <button class="color-btn"        data-color="Pink"    title="Sakura Pink" onclick="selectColor(this)"></button>
-  <button class="color-btn"        data-color="Grau"    title="Concrete Grey" onclick="selectColor(this)"></button>
-  <button class="color-btn"        data-color="Violett" title="Deep Violet"  onclick="selectColor(this)"></button>
-</div>
-<p class="color-name" id="color-name">Schwarz — Onyx Black</p>
+      <div class="color-options">
+        <button class="color-btn active" data-color="Schwarz" title="Onyx Black"    onclick="selectColor(this)"></button>
+        <button class="color-btn"        data-color="Pink"    title="Sakura Pink"   onclick="selectColor(this)"></button>
+        <button class="color-btn"        data-color="Grau"    title="Concrete Grey" onclick="selectColor(this)"></button>
+        <button class="color-btn"        data-color="Violett" title="Deep Violet"   onclick="selectColor(this)"></button>
+      </div>
+      <p class="color-name" id="color-name">Schwarz — Onyx Black</p>
 
-      <!-- Size Picker -->
       <p class="selector-label">Größe wählen</p>
       <div class="size-options">
         <button class="size-btn" onclick="selectSize(this)">XS</button>
@@ -682,44 +713,47 @@
   </div>
 </div>
 
-<!-- ── ORDER ───────────────────────────────────────────────────── -->
+<!-- ── ORDER ───────────────────────────────────────── -->
 <div class="order-section-wrap">
   <div id="order">
     <div class="order-inner">
       <p class="section-label">Deine Auswahl</p>
-      <h3 class="section-title" style="font-size:2rem;margin-bottom:0.5rem;">Fast bereit.</h3>
-
+      <h3 class="section-title" style="font-size:clamp(1.5rem,5vw,2rem);margin-bottom:0.5rem;">Fast bereit.</h3>
       <p class="summary-text" id="order-summary">
         Du hast dich für die <strong id="sum-color">Standard</strong> Hose
         in Größe <strong id="sum-size">—</strong> entschieden.
       </p>
 
       <p class="selector-label" style="margin-bottom:0.6rem;">Personalisierungswunsch</p>
-      <textarea
-        class="personalisation"
-        id="personal-input"
-        rows="4"
-        placeholder="z.B. Bundfalten statt Bundfaltenlos, spezielle Stickereidetails, bitte keine Aufnäher …"
-        oninput="updateMessage()"
-      ></textarea>
+      <textarea class="personalisation" id="personal-input" rows="4"
+        placeholder="z.B. Bundfalten statt Bundfaltenlos, spezielle Details …"
+        oninput="updateMessage()"></textarea>
 
       <p class="selector-label" style="margin-bottom:0.6rem;">Deine generierte Nachricht</p>
-     <div class="generated-msg" id="gen-msg">Hallo Iorgu, ich interessiere mich für die Sakura Pants in Schwarz, Größe —. Personalisierungswunsch: Keine.</div>
+      <div class="generated-msg" id="gen-msg">Hallo Iorgu, ich interessiere mich für die Sakura Pants in Schwarz, Größe —. Personalisierungswunsch: Keine.</div>
 
       <div class="action-btns">
         <button class="btn-copy" onclick="copyMsg()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
           Text kopieren
         </button>
         <span class="copy-feedback" id="copy-fb">✓ Kopiert!</span>
 
         <a id="wa-link" href="#" class="btn-wa" target="_blank" rel="noopener">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.852L0 24l6.333-1.498A11.958 11.958 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.79 9.79 0 0 1-5.12-1.447l-.368-.218-3.76.888.92-3.663-.239-.375A9.818 9.818 0 0 1 2.182 12C2.182 6.565 6.565 2.182 12 2.182S21.818 6.565 21.818 12 17.435 21.818 12 21.818z"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.852L0 24l6.333-1.498A11.958 11.958 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.79 9.79 0 0 1-5.12-1.447l-.368-.218-3.76.888.92-3.663-.239-.375A9.818 9.818 0 0 1 2.182 12C2.182 6.565 6.565 2.182 12 2.182S21.818 6.565 21.818 12 17.435 21.818 12 21.818z"/>
+          </svg>
           WhatsApp
         </a>
 
         <a id="mail-link" href="#" class="btn-mail">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
           Per Mail senden
         </a>
       </div>
@@ -727,14 +761,13 @@
   </div>
 </div>
 
-<!-- ── STEPS ───────────────────────────────────────────────────── -->
+<!-- ── STEPS ───────────────────────────────────────── -->
 <div class="section-wrap" id="steps-section">
   <div id="steps">
     <div class="reveal">
       <p class="section-label">Der Prozess</p>
       <h2 class="section-title">So einfach<br /><em>funktioniert es.</em></h2>
     </div>
-
     <div class="steps-grid">
       <div class="step-card reveal reveal-delay-1">
         <div class="step-num">01</div>
@@ -755,16 +788,14 @@
   </div>
 </div>
 
-<!-- ── VISION ──────────────────────────────────────────────────── -->
+<!-- ── VISION ──────────────────────────────────────── -->
 <div class="section-wrap" id="vision-section" style="background:#080706;">
   <div id="vision" class="reveal">
     <p class="section-label">The Vision</p>
     <div class="divider"></div>
-
     <blockquote class="vision-quote">
       „Streetwear ist keine Kategorie.<br />Es ist eine Haltung."
     </blockquote>
-
     <p class="vision-body">
       Sakura Clothing entstand aus dem Wunsch, Kleidung zu schaffen, die mehr ist als Stoff.
       Es ist die Verbindung von urbaner Energie und japanisch inspirierter Stille —
@@ -772,9 +803,7 @@
       jede Kollektion ein Statement gegen das Überflüssige und für das Wesentliche.
       Sakura bedeutet Kirschblüte — vergänglich, schön, bedeutsam.
     </p>
-
     <div class="divider"></div>
-
     <div class="founder-tag">
       <div class="founder-avatar">F</div>
       <div class="founder-name">
@@ -785,7 +814,7 @@
   </div>
 </div>
 
-<!-- ── FOOTER ──────────────────────────────────────────────────── -->
+<!-- ── FOOTER ──────────────────────────────────────── -->
 <footer>
   <div class="footer-logo">Sakura</div>
   <p>© 2026 Sakura Clothing — Iorgu Ghitta · Bern</p>
@@ -793,141 +822,148 @@
 </footer>
 
 <script>
-  /* ── CURSOR ─────────────────────────────────────── */
+  /* ── HAMBURGER NAV ─────────────────────────────── */
+  const toggle   = document.getElementById('nav-toggle');
+  const navLinks = document.getElementById('nav-links');
+
+  toggle.addEventListener('click', () => {
+    const open = navLinks.classList.toggle('open');
+    toggle.classList.toggle('open', open);
+    toggle.setAttribute('aria-label', open ? 'Menü schließen' : 'Menü öffnen');
+    document.body.style.overflow = open ? 'hidden' : '';
+  });
+
+  function closeMenu() {
+    navLinks.classList.remove('open');
+    toggle.classList.remove('open');
+    toggle.setAttribute('aria-label', 'Menü öffnen');
+    document.body.style.overflow = '';
+  }
+
+  /* ── CUSTOM CURSOR (desktop only) ─────────────── */
   const cur  = document.getElementById('cursor');
   const ring = document.getElementById('cursor-ring');
   let mx = 0, my = 0, rx = 0, ry = 0;
 
-  document.addEventListener('mousemove', e => {
-    mx = e.clientX; my = e.clientY;
-    cur.style.left = mx + 'px';
-    cur.style.top  = my + 'px';
-  });
-
-  (function animRing() {
-    rx += (mx - rx) * 0.12;
-    ry += (my - ry) * 0.12;
-    ring.style.left = rx + 'px';
-    ring.style.top  = ry + 'px';
-    requestAnimationFrame(animRing);
-  })();
-
-  document.querySelectorAll('a,button').forEach(el => {
-    el.addEventListener('mouseenter', () => {
-      cur.style.width  = cur.style.height  = '20px';
-      ring.style.width = ring.style.height = '56px';
+  if (window.matchMedia('(pointer: fine)').matches) {
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cur.style.left = mx + 'px';
+      cur.style.top  = my + 'px';
     });
-    el.addEventListener('mouseleave', () => {
-      cur.style.width  = cur.style.height  = '10px';
-      ring.style.width = ring.style.height = '38px';
+    (function animRing() {
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(animRing);
+    })();
+    document.querySelectorAll('a,button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cur.style.width  = cur.style.height  = '20px';
+        ring.style.width = ring.style.height = '56px';
+      });
+      el.addEventListener('mouseleave', () => {
+        cur.style.width  = cur.style.height  = '10px';
+        ring.style.width = ring.style.height = '38px';
+      });
     });
-  });
+  }
 
-  /* ── STATE ──────────────────────────────────────── */
-/* ── STATE ──────────────────────────────────────── */
-let selectedColor = 'Schwarz'; // Standard auf Schwarz gesetzt
-let selectedSize  = '—';
+  /* ── STATE ─────────────────────────────────────── */
+  let selectedColor = 'Schwarz';
+  let selectedSize  = '—';
 
-const colorLabels = {
-  Schwarz: 'Onyx Black',
-  Pink:    'Sakura Pink',
-  Grau:    'Concrete Grey',
-  Violett: 'Deep Violet'
-};
+  const colorLabels = {
+    Schwarz: 'Schwarz — Onyx Black',
+    Pink:    'Pink — Sakura Pink',
+    Grau:    'Grau — Concrete Grey',
+    Violett: 'Violett — Deep Violet'
+  };
+  const colorShort = {
+    Schwarz: 'Schwarz', Pink: 'Pink', Grau: 'Grau', Violett: 'Violett'
+  };
+  const imageMap = {
+    Schwarz: 'Hosen.jpg',
+    Pink:    'HosenPink.jpg',
+    Grau:    'HosenGrau.jpg',
+    Violett: 'HosenViolett.jpg'
+  };
 
-const imageMap = {
-  Schwarz: 'Hosen.jpg',      // Dein Bildname für Schwarz
-  Pink:    'HosenPink.jpg',  // Achte darauf, dass die Dateinamen stimmen
-  Grau:    'HosenGrau.jpg',
-  Violett: 'HosenViolett.jpg'
-};
-
-  /* ── COLOR ──────────────────────────────────────── */
+  /* ── COLOR ─────────────────────────────────────── */
   function selectColor(btn) {
     document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedColor = btn.dataset.color;
-
     document.getElementById('color-name').textContent = colorLabels[selectedColor];
-
     const img = document.getElementById('product-img');
     img.style.opacity = '0';
-    setTimeout(() => {
-      img.src = imageMap[selectedColor];
-      img.style.opacity = '1';
-    }, 350);
-
-    updateOrder();
-    updateMessage();
+    setTimeout(() => { img.src = imageMap[selectedColor]; img.style.opacity = '1'; }, 320);
+    updateOrder(); updateMessage();
   }
 
-  /* ── SIZE ───────────────────────────────────────── */
+  /* ── SIZE ──────────────────────────────────────── */
   function selectSize(btn) {
     document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedSize = btn.textContent;
-    updateOrder();
-    updateMessage();
+    updateOrder(); updateMessage();
   }
 
-  /* ── ORDER OPEN ─────────────────────────────────── */
+  /* ── OPEN ORDER ────────────────────────────────── */
   function openOrder() {
-    if (selectedSize === '—') {
-      alert('Bitte wähle zuerst eine Größe aus.');
-      return;
-    }
+    if (selectedSize === '—') { alert('Bitte wähle zuerst eine Größe aus.'); return; }
     const sec = document.getElementById('order');
     sec.classList.add('visible');
     setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    updateOrder();
-    updateMessage();
+    updateOrder(); updateMessage();
   }
 
   function updateOrder() {
-    document.getElementById('sum-color').textContent = colorLabels[selectedColor] || selectedColor;
+    document.getElementById('sum-color').textContent = colorShort[selectedColor] || selectedColor;
     document.getElementById('sum-size').textContent  = selectedSize;
   }
 
-  /* ── MESSAGE ────────────────────────────────────── */
+  /* ── MESSAGE ───────────────────────────────────── */
   function updateMessage() {
     const personal = document.getElementById('personal-input').value.trim() || 'Keine.';
     const msg = `Hallo Iorgu, ich interessiere mich für die Sakura Pants in ${selectedColor}, Größe ${selectedSize}. Personalisierungswunsch: ${personal}`;
     document.getElementById('gen-msg').textContent = msg;
-
-    // WhatsApp
-    const phone = '41765069313';
-    document.getElementById('wa-link').href =
-      `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-
-    // Mail
+    const phone   = '41767509720';
+    document.getElementById('wa-link').href  = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
     const subject = encodeURIComponent('Bestellung – Sakura Pants');
-    document.getElementById('mail-link').href =
-      `mailto:iorgu.sakuraclothing@proton.me?subject=${subject}&body=${encodeURIComponent(msg)}`;
+    document.getElementById('mail-link').href = `mailto:iorgu.sakuraclothing@proton.me?subject=${subject}&body=${encodeURIComponent(msg)}`;
   }
 
-  /* ── COPY ───────────────────────────────────────── */
+  /* ── COPY ──────────────────────────────────────── */
   function copyMsg() {
     const text = document.getElementById('gen-msg').textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      const fb = document.getElementById('copy-fb');
-      fb.classList.add('show');
-      setTimeout(() => fb.classList.remove('show'), 2000);
-    });
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(showCopied);
+    } else {
+      /* Fallback for older mobile browsers */
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showCopied();
+    }
+  }
+  function showCopied() {
+    const fb = document.getElementById('copy-fb');
+    fb.classList.add('show');
+    setTimeout(() => fb.classList.remove('show'), 2000);
   }
 
-  /* ── SCROLL REVEAL ──────────────────────────────── */
+  /* ── SCROLL REVEAL ─────────────────────────────── */
   const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('in');
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12 });
-
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); observer.unobserve(e.target); } });
+  }, { threshold: 0.1 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  /* ── INIT MSG ───────────────────────────────────── */
+  /* ── INIT ──────────────────────────────────────── */
   updateMessage();
 </script>
 </body>
